@@ -115,26 +115,29 @@ public class Bb implements Serializable {
      */
     public String envoyer() {
         if (question == null || question.isBlank()) {
-            // Erreur ! Le formulaire va être réaffiché en réponse à la requête POST, avec un message d'erreur.
             FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR,
                     "Texte question vide", "Il manque le texte de la question");
             facesContext.addMessage(null, message);
             return null;
         }
-        // Entourer la réponse avec "||".
-        this.reponse = "||";
-        // Si la conversation n'a pas encore commencé, ajouter le rôle système au début de la réponse
+
+        // ✅ Nettoyer la question avant de compter les mots (enlever ponctuation)
+        String propre = question.replaceAll("[^\\p{L}\\p{Nd}\\s]", ""); // garde lettres, chiffres, espaces
+        int nbMots = propre.trim().isEmpty() ? 0 : propre.trim().split("\\s+").length;
+
+        this.reponse = "Ta question contient " + nbMots + " mots.";
+
+        // Si c'est la première question, ajouter le rôle système au début
         if (this.conversation.isEmpty()) {
-            // Ajouter le rôle système au début de la réponse
-            this.reponse += roleSysteme.toUpperCase(Locale.FRENCH) + "\n";
-            // Invalide le bouton pour changer le rôle système
+            this.reponse = roleSysteme.toUpperCase(Locale.FRENCH) + "\n" + this.reponse;
             this.roleSystemeChangeable = false;
         }
-        this.reponse += question.toLowerCase(Locale.FRENCH) + "||";
-        // La conversation contient l'historique des questions-réponses depuis le début.
+
         afficherConversation();
         return null;
     }
+
+
 
     /**
      * Pour un nouveau chat.
